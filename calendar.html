@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendar</title>
+</head>
+<script>
+    var CONTENT = '<html lang="en"> <head> <meta charset="UTF-8"/> <meta http-equiv="X-UA-Compatible" content="IE=edge"/> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <title>Calendar</title> <link rel="stylesheet" href="./style.css"/> </head> <body> <div id="mainContent" style="width:100%;display:grid;justify-items:center;row-gap:2rem;"><div class="calendar"> <div class="header"> <button class="lastYear" title="Last year">&lt;&lt;</button> <button class="lastMonth" title="Last month">&lt;</button> <div class="currentDate"></div><button class="nextMonth" title="Next month">&gt;</button> <button class="nextYear" title="Next year">&gt;&gt;</button> </div><div class="days"> <div class="day">一</div><div class="day">二</div><div class="day">三</div><div class="day">四</div><div class="day">五</div><div class="day">六</div><div class="day">日</div></div><div class="dates"> </div></div><div class="card" style="display:grid;justify-items:center;align-items:center;"><p id="cardMessage">今天, 你学了吗?</p></div><button id="signInBtn" onclick=signIn();>打卡</button></div><style>:root{font-size: 2vmin; --accent-color: #FFC100;}*{margin: 0; padding: 0; box-sizing: border-box;}.days{font-weight:500; font-size:1.5rem !important;}body{width: 100vw; height: 100vh; display: grid; place-items: center; font-family: Verdana, Geneva, Tahoma, sans-serif;}.calendar{width: 90vw; user-select: none;}/* header */.header{display: flex; justify-content: space-evenly; margin-bottom: 20px;}.currentDate{font-size: 2rem; font-weight: bold; color: var(--accent-color); text-align: center; min-width: 28vmin;}.header button{border: 2px solid transparent; outline: none; background-color: transparent; cursor: pointer; padding: 0 10px; transition: all 0.3s; font-size: 1.3rem;}.header button:hover{border: 2px solid var(--accent-color);}/* days */.days{display: flex; justify-content: space-around; text-align: center; padding: 20px 0; font-size: 1.2rem; color: var(--accent-color);}/* dates */.dates{display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;}.date{text-align: center; padding: 20px 0; font-size: 1.6rem; transition: all 0.3s; border: 3px solid transparent; color: rgba(0, 0, 0, 0.36); cursor: pointer; background-color: transparent; box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);}.date.currentMonth{color: #000;}.date:hover,.date.selected{border-color: var(--accent-color);}.date.selected{background-color: var(--accent-color); color: #fff;}#signInBtn{font-family:"Microsoft Yahei", sans-serif;width:11.5rem; height:4.25rem;background-color:#FFC100;border:0px;border-radius:8px;font-size:2rem;letter-spacing: .4rem;font-weight:600;color:#fff;}.cancelBtn{font-family:"Microsoft Yahei", sans-serif;width:10rem; height:3rem;background-color:#D9D9D9;border:0px;border-radius:8px;font-size:1.5rem;letter-spacing: .4rem;font-weight:500;color:#fff;}.card{height:8rem;width:80%;color:#222222;}#cardMessage{font-family:"Microsoft Yahei", sans-serif;font-size:2rem;letter-spacing:.2rem;}.resetBtn{color:#333;background-color:#fff;border:0px;font-family:"Microsoft Yahei", sans-serif;font-size:1.25rem;letter-spacing:.2rem;}</style></body></html>';
+    document.querySelector('html').innerHTML = CONTENT;
+    var main = document.getElementById('mainContent');
+    function getTodayDate() {
+        // return string date, ex: "2023-4-30"
+        let dateNow = new Date().toISOString().split('T')[0].split('-').map(str => parseInt(str, 10))
+        dateNow = dateNow.join('-');
+        return dateNow;
+    }
+    function getPastData() {
+        // returns data as a list of date strings
+        const data = localStorage.getItem('signIns') ? JSON.parse(localStorage.getItem('signIns')) : [];
+        return data;
+    }
+    function signIn() {
+        // push new date string to SIGNINS and update localStorage
+        SIGNINS.push(TODAY);
+        const cancelBtn = document.createElement('button');
+        cancelBtn.classList = ['cancelBtn'];
+        cancelBtn.setAttribute('onclick', "cancelSignIn();");
+        cancelBtn.textContent = "取消打卡";
+        main.appendChild(cancelBtn);
+        const resetBtn = document.createElement('button');
+        resetBtn.classList = ['resetBtn'];
+        resetBtn.setAttribute('onclick', "resetSignIn();");
+        resetBtn.textContent = "重置打卡记录";
+        main.appendChild(resetBtn);
+        localStorage.setItem('signIns', JSON.stringify(SIGNINS));
+        cardMessage.textContent = "祝你学习愉快.";
+        signInBtn.textContent = "打卡成功√";
+        signInBtn.setAttribute('disabled', '');
+        signInBtn.style.backgroundColor = "#ffffff";
+        signInBtn.style.color = "#FFC100";
+        signInBtn.style.width = '20rem';
+    }
+    function cancelSignIn() {
+        SIGNINS.pop();
+        localStorage.setItem('signIns', JSON.stringify(SIGNINS));
+        checkSignedIn();
+        const resetBtn = document.getElementsByClassName('resetBtn')[0];
+        const cancelBtn = document.getElementsByClassName('cancelBtn')[0];
+        resetBtn.remove();
+        cancelBtn.remove();
+        signInBtn.remove();
+        const signInBtn2 = document.createElement('button');
+        signInBtn2.id = 'signInBtn';
+        signInBtn2.setAttribute('onclick', "signIn();");
+        signInBtn2.textContent = "打卡";
+        main.appendChild(signInBtn2);
+        signInBtn = signInBtn2;
+        cardMessage.textContent = "今天, 你学了吗?";
+    }
+    function resetSignIn() {
+        if (confirm("确定要重置所有打卡历史吗?")) {
+            SIGNINS = [];
+            localStorage.setItem('signIns', JSON.stringify(SIGNINS));
+            checkSignedIn();
+            const resetBtn = document.getElementsByClassName('resetBtn')[0];
+            const cancelBtn = document.getElementsByClassName('cancelBtn')[0];
+            resetBtn.remove();
+            cancelBtn.remove();
+            signInBtn.remove();
+            const signInBtn2 = document.createElement('button');
+            signInBtn2.id = 'signInBtn';
+            signInBtn2.setAttribute('onclick', "signIn();");
+            signInBtn2.textContent = "打卡";
+            main.appendChild(signInBtn2);
+            signInBtn = signInBtn2;
+            cardMessage.textContent = "今天, 你学了吗?";
+        }
+    }
+    function checkSignedIn() {
+        const dates = document.getElementsByClassName('dates');
+        Array.from(dates[0].childNodes).forEach(d=>{
+            if(SIGNINS.includes(d.title)){
+                d.style.textDecoration = "underline #FFC100";
+                d.style.textDecorationThickness = "4px";
+            } else {
+                d.style.textDecoration = "none";
+            }
+        })
+    }
+
+    // to test sign in
+    var SIGNINS = getPastData();
+    var TODAY = getTodayDate();
+    var signInBtn = document.getElementById('signInBtn');
+    var cardMessage = document.getElementById('cardMessage');
+    if (SIGNINS.includes(TODAY)) {
+        cardMessage.textContent = "祝你学习愉快.";
+        signInBtn.textContent = "打卡成功√";
+        signInBtn.setAttribute('disabled', '');
+        signInBtn.style.backgroundColor = "#ffffff";
+        signInBtn.style.color = "#FFC100";
+        signInBtn.style.width = '20rem';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.classList = ['cancelBtn'];
+        cancelBtn.setAttribute('onclick', "cancelSignIn();");
+        cancelBtn.textContent = "取消打卡";
+        main.appendChild(cancelBtn);
+        const resetBtn = document.createElement('button');
+        resetBtn.classList = ['resetBtn'];
+        resetBtn.setAttribute('onclick', "resetSignIn();");
+        resetBtn.textContent = "重置打卡记录";
+        main.appendChild(resetBtn);
+    }
+
+    class Calendar {
+    constructor({
+        element,
+        defaultDate
+    }) {
+        if (defaultDate instanceof Date) {
+        this.defaultDate = defaultDate
+        } else {
+        this.defaultDate = new Date();
+        }
+        if (element instanceof HTMLElement) {
+        this.element = element;
+        }
+
+        this.#init();
+    }
+
+    // private properties
+    #year;
+    // start from 1
+    #month;
+    #date;
+    #dateString;
+
+    #init = () => {
+        const defaultYear = this.defaultDate.getFullYear();
+        const defaultMonth = this.defaultDate.getMonth() + 1;
+        const defaultDate = this.defaultDate.getDate();
+        this.#setDate(defaultYear, defaultMonth, defaultDate);
+        this.#listenEvents();
+    }
+
+    #listenEvents = () => {
+        // DOMS
+        const lastYearButton = this.element.querySelector('.lastYear');
+        const lastMonthButton = this.element.querySelector('.lastMonth');
+        const nextYearButton = this.element.querySelector('.nextYear');
+        const nextMonthButton = this.element.querySelector('.nextMonth');
+        // last year
+        lastYearButton.addEventListener('click', () => {
+        this.#year--;
+        this.#setDate(this.#year, this.#month);
+        checkSignedIn();
+        });
+        // next year
+        nextYearButton.addEventListener('click', () => {
+        this.#year++;
+        this.#setDate(this.#year, this.#month);
+        });
+        // last month
+        lastMonthButton.addEventListener('click', () => {
+        if (this.#month === 1) {
+            this.#month = 12;
+            this.#year--;
+        } else {
+            this.#month--;
+        }
+        this.#setDate(this.#year, this.#month);
+        checkSignedIn();
+        });
+        // next month
+        nextMonthButton.addEventListener('click', () => {
+        if (this.#month === 12) {
+            this.#month = 1;
+            this.#year++;
+        } else {
+            this.#month++
+        }
+        this.#setDate(this.#year, this.#month);
+        checkSignedIn();
+        });
+        // click dates
+        this.element.addEventListener('click', (e) => {
+        if (e.target.classList.contains('date')) {
+            const params = e.target.title.split('-').map(str => parseInt(str, 10));
+            this.#setDate(...params, false);
+            console.log(params);
+        }
+        });
+    }
+
+    #setDate = (year, month, date, reRenderDate = true) => {
+        this.#year = year;
+        this.#month = month;
+        this.#date = date;
+        // the only place to do renders
+        this.#renderCurrentDate();
+        this.#renderDates(reRenderDate);
+    }
+
+    #renderCurrentDate = () => {
+        const currentDateEL = this.element.querySelector('.currentDate');
+        this.#dateString = this.#getDateString(this.#year, this.#month, this.#date);
+        currentDateEL.textContent = this.#dateString;
+    }
+
+    #getLastMonthInfo = () => {
+        let lastMonth = this.#month - 1;
+        let yearOfLastMonth = this.#year;
+        if (lastMonth === 0) {
+        lastMonth = 12;
+        yearOfLastMonth -= 1;
+        }
+        let dayCountInLastMonth = this.#getDayCount(yearOfLastMonth, lastMonth);
+
+        return {
+        lastMonth,
+        yearOfLastMonth,
+        dayCountInLastMonth
+        }
+    }
+
+    #getNextMonthInfo = () => {
+        let nextMonth = this.#month + 1;
+        let yearOfNextMonth = this.#year;
+        if (nextMonth === 13) {
+        nextMonth = 1;
+        yearOfNextMonth += 1;
+        }
+        let dayCountInNextMonth = this.#getDayCount(yearOfNextMonth, nextMonth);
+
+        return {
+        nextMonth,
+        yearOfNextMonth,
+        dayCountInNextMonth
+        }
+    }
+
+    #getDateString = (year, month, date) => {
+        if (date) {
+        return `${year}-${month}-${date}`;
+        } else {
+        return `${year}-${month}`;
+        }
+    }
+
+    #renderDates = (reRender) => {
+        // DOM
+        const datesEL = this.element.querySelector('.dates');
+        if (!reRender) {
+        const dateELs = datesEL.querySelectorAll('.date');
+        for (const el of dateELs) {
+            el.classList.toggle('selected', el.title === this.#dateString);
+        }
+        return;
+        }
+
+        datesEL.innerHTML = '';
+        const dayCountInCurrentMonth = this.#getDayCount(this.#year, this.#month);
+        const firstDay = this.#getDayOfFirstDate();
+        const { lastMonth, yearOfLastMonth, dayCountInLastMonth } = this.#getLastMonthInfo();
+        const { nextMonth, yearOfNextMonth } = this.#getNextMonthInfo();
+
+        for (let i = 1; i <= 42; i++) {
+        const dateEL = document.createElement('button');
+        dateEL.classList.add('date');
+        let dateString;
+        let date;
+        if (firstDay > 1 && i < firstDay) {
+            // dates in last month
+            date = dayCountInLastMonth - (firstDay - i) + 1;
+            dateString = this.#getDateString(yearOfLastMonth, lastMonth, date);
+        } else if (i >= dayCountInCurrentMonth + firstDay) {
+            // dates in next month
+            date = i - (dayCountInCurrentMonth + firstDay) + 1;
+            dateString = this.#getDateString(yearOfNextMonth, nextMonth, date);
+        } else {
+            // dates in currrent month
+            date = i - firstDay + 1;
+            dateString = this.#getDateString(this.#year, this.#month, date);
+            dateEL.classList.add('currentMonth');
+            if (date === this.#date) {
+            dateEL.classList.add('selected');
+            }
+        }
+        dateEL.textContent = date;
+        dateEL.title = dateString;
+        datesEL.append(dateEL);
+        }
+    }
+
+    /**
+     * Get day count with year, month
+     * @param {number} year year number
+     * @param {number} month month number that starts from 1
+     * @returns 
+     */
+    #getDayCount = (year, month) => {
+        return new Date(year, month, 0).getDate();
+    }
+
+    #getDayOfFirstDate = () => {
+        let day = new Date(this.#year, this.#month - 1, 1).getDay();
+        return day === 0 ? 7 : day;
+    }
+    }
+
+    const calendar = document.querySelector('.calendar');
+
+    new Calendar({
+    element: calendar,
+    // defaultDate: new Date(1999, 9, 9)
+    });
+
+    checkSignedIn();
+</script>
+</html>
